@@ -42,115 +42,115 @@ import junit.framework.TestCase;
 
 public class TestLSHRecommendations extends TestCase {
 
-   
-    public TestLSHRecommendations(String name) {
-        super(name);
-    }
 
-    protected void setUp() throws Exception {
-        super.setUp();        
-    }
-    
-    protected void tearDown() throws IOException {
-    }    
-    
-    
-    public boolean dfsRunWithCheck(int depth, int iterate) {
-        // settings 
-        Configuration conf = new Configuration();
-        conf.set("fs.default.name", "file:///");
-        conf.set("mapred.job.tracker", "local");
+  public TestLSHRecommendations(String name) {
+    super(name);
+  }
 
-        // run
-        this.run(depth, iterate, "dfs", conf);
+  protected void setUp() throws Exception {
+    super.setUp();
+  }
 
-        /* check output */
-        try {
-            assertTrue(this.dfsCheck(conf, new Path(this.outputPath)));
-        } catch (IOException e) {
-            fail("Got IOException");
-            e.printStackTrace();
-        }
-        return true;
-    }
-    
-    public boolean run(int depth, int iterate, String writer, Configuration conf) {
-        /* run lsh */
-        String[] args = {"-input",  this.inputPath, 
-                         "-output", this.outputPath,
-                         "-depth",  Integer.toString(depth),
-                         "-iterate", Integer.toString(iterate),
-                         "-storage", writer
-                         
-        };
-        
-        LSHRecommendations job = new LSHRecommendations();
-        
-        try {
-            job.run(args, conf);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-    
-    public void testRun() {
-        assertTrue(this.dfsRunWithCheck(1, 1));
-        assertTrue(this.dfsRunWithCheck(1, 5));
-        assertTrue(this.dfsRunWithCheck(1, 10));
-    }
-    
-    private void check(MultiHashMap resultMap) {
-        /* basic test cases */
-        Collection coll = (Collection) resultMap.get(new Long(0));
-        assertTrue(coll.size() >= 2 && coll.size() <= 4);
-        coll = (Collection) resultMap.get(new Long(1));
-        assertTrue(coll.size() >= 2 && coll.size() <= 4);
-        coll = (Collection) resultMap.get(new Long(2));
-        assertTrue(coll.size() >= 2 && coll.size() <= 4);
-        coll = (Collection) resultMap.get(new Long(3));
-        assertTrue(coll.size() >= 1 && coll.size() <= 3);
-        
-        /* examples with no recommendation */
-        assertFalse(resultMap.containsKey(new Long(7)));
-        assertFalse(resultMap.containsKey(new Long(8)));
-    }
+  protected void tearDown() throws IOException {
+  }    
 
-    private boolean dfsCheck(Configuration conf, 
-            Path outputPath) 
-    throws IOException {
-        FileSystem fs = FileSystem.getLocal(conf);
-        Path[] outputFiles = FileUtil.stat2Paths(
-            fs.listStatus(outputPath, new OutputLogFilter()));
 
-        //if (outputFiles != null) {
-        //    TestCase.assertEquals(outputFiles.length, 1);
-        //} else {
-        //    TestCase.fail();
-        //}
+  public boolean dfsRunWithCheck(int depth, int iterate) {
+    // settings 
+    Configuration conf = new Configuration();
+    conf.set("fs.default.name", "file:///");
+    conf.set("mapred.job.tracker", "local");
 
-        BufferedReader reader = this.asBufferedReader(
-                fs.open(outputFiles[0]));        
-        
-        String line;
-        MultiHashMap resultMap = new MultiHashMap();
-        while ((line = reader.readLine()) != null) {
-            String[] lineArray = line.split("\t");
-            resultMap.put(Long.parseLong(lineArray[0]), // target 
-                    Long.parseLong(lineArray[1]));      // recommended
-            
-        }
-        this.check(resultMap);
-        return true;
+    // run
+    this.run(depth, iterate, "dfs", conf);
+
+    /* check output */
+    try {
+      assertTrue(this.dfsCheck(conf, new Path(this.outputPath)));
+    } catch (IOException e) {
+      fail("Got IOException");
+      e.printStackTrace();
     }
-    
-    private BufferedReader asBufferedReader(final InputStream in)
-    throws IOException {
-        return new BufferedReader(new InputStreamReader(in));
-    }
-    
-    private String inputPath  = "testSmallInput.txt";
+    return true;
+  }
 
-    private String outputPath = "outputLSH";
+  public boolean run(int depth, int iterate, String writer, Configuration conf) {
+    /* run lsh */
+    String[] args = {"-input",  this.inputPath, 
+        "-output", this.outputPath,
+        "-depth",  Integer.toString(depth),
+        "-iterate", Integer.toString(iterate),
+        "-storage", writer
+
+    };
+
+    LSHRecommendations job = new LSHRecommendations();
+
+    try {
+      job.run(args, conf);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+  public void testRun() {
+    assertTrue(this.dfsRunWithCheck(1, 1));
+    assertTrue(this.dfsRunWithCheck(1, 5));
+    assertTrue(this.dfsRunWithCheck(1, 10));
+  }
+
+  private void check(MultiHashMap resultMap) {
+    /* basic test cases */
+    Collection coll = (Collection) resultMap.get(new Long(0));
+    assertTrue(coll.size() >= 2 && coll.size() <= 4);
+    coll = (Collection) resultMap.get(new Long(1));
+    assertTrue(coll.size() >= 2 && coll.size() <= 4);
+    coll = (Collection) resultMap.get(new Long(2));
+    assertTrue(coll.size() >= 2 && coll.size() <= 4);
+    coll = (Collection) resultMap.get(new Long(3));
+    assertTrue(coll.size() >= 1 && coll.size() <= 3);
+
+    /* examples with no recommendation */
+    assertFalse(resultMap.containsKey(new Long(7)));
+    assertFalse(resultMap.containsKey(new Long(8)));
+  }
+
+  private boolean dfsCheck(Configuration conf, 
+      Path outputPath) 
+          throws IOException {
+    FileSystem fs = FileSystem.getLocal(conf);
+    Path[] outputFiles = FileUtil.stat2Paths(
+        fs.listStatus(outputPath, new OutputLogFilter()));
+
+    //if (outputFiles != null) {
+    //    TestCase.assertEquals(outputFiles.length, 1);
+    //} else {
+    //    TestCase.fail();
+    //}
+
+    BufferedReader reader = this.asBufferedReader(
+        fs.open(outputFiles[0]));        
+
+    String line;
+    MultiHashMap resultMap = new MultiHashMap();
+    while ((line = reader.readLine()) != null) {
+      String[] lineArray = line.split("\t");
+      resultMap.put(Long.parseLong(lineArray[0]), // target 
+          Long.parseLong(lineArray[1]));      // recommended
+
+    }
+    this.check(resultMap);
+    return true;
+  }
+
+  private BufferedReader asBufferedReader(final InputStream in)
+      throws IOException {
+    return new BufferedReader(new InputStreamReader(in));
+  }
+
+  private String inputPath  = "testSmallInput.txt";
+
+  private String outputPath = "outputLSH";
 }

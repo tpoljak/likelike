@@ -35,76 +35,76 @@ import static org.mockito.Mockito.*;
 
 public class TestGetRecommendationsMapper extends TestCase {
 
-    public TestGetRecommendationsMapper(String name) {
-        super(name);
+  public TestGetRecommendationsMapper(String name) {
+    super(name);
+  }
+
+  protected void setUp() throws Exception {
+    super.setUp();
+  }
+
+  public void testMap() {
+    GetRecommendationsMapper mapper =
+        new GetRecommendationsMapper();
+
+    Mapper<SeedClusterId, RelatedUsersWritable, LongWritable, 
+    Candidate>.Context mock_context
+    = mock(Mapper.Context.class);        
+
+    List<LongWritable> value = new ArrayList<LongWritable>();
+    value.add(new LongWritable(1));
+    value.add(new LongWritable(443));
+    value.add(new LongWritable(2));
+    value.add(new LongWritable(5));
+    value.add(new LongWritable(3));
+    value.add(new LongWritable(54));
+    value.add(new LongWritable(434));
+
+    SeedClusterId hashedClusterId 
+    = new SeedClusterId(1L,143248978L); 
+    LongWritable clusterSize 
+    = new LongWritable(7L); 
+    try {
+      /*
+       * key - hashed clusterId
+       * value - example ids exist in the cluster with clusterId. 
+       */
+      mapper.map(hashedClusterId, new RelatedUsersWritable(value), mock_context);
+    } catch (IOException e) {
+      e.printStackTrace();
+      TestCase.fail();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      TestCase.fail();
+    } catch (Exception e) {
+      e.printStackTrace();
+      TestCase.fail();
     }
 
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
+    try {
+      /* case: simple */
+      verify(mock_context, times(1)).write(new LongWritable(54L),
+          new Candidate(new LongWritable(443L), clusterSize));
 
-    public void testMap() {
-        GetRecommendationsMapper mapper =
-            new GetRecommendationsMapper();
+      verify(mock_context, times(1)).write(new LongWritable(5L),
+          new Candidate(new LongWritable(54L), clusterSize));
 
-        Mapper<SeedClusterId, RelatedUsersWritable, LongWritable, 
-        Candidate>.Context mock_context
-            = mock(Mapper.Context.class);        
-        
-        List<LongWritable> value = new ArrayList<LongWritable>();
-        value.add(new LongWritable(1));
-        value.add(new LongWritable(443));
-        value.add(new LongWritable(2));
-        value.add(new LongWritable(5));
-        value.add(new LongWritable(3));
-        value.add(new LongWritable(54));
-        value.add(new LongWritable(434));
-        
-        SeedClusterId hashedClusterId 
-            = new SeedClusterId(1L,143248978L); 
-        LongWritable clusterSize 
-            = new LongWritable(7L); 
-        try {
-            /*
-             * key - hashed clusterId
-             * value - example ids exist in the cluster with clusterId. 
-             */
-            mapper.map(hashedClusterId, new RelatedUsersWritable(value), mock_context);
-        } catch (IOException e) {
-            e.printStackTrace();
-            TestCase.fail();
-         } catch (InterruptedException e) {
-             e.printStackTrace();
-             TestCase.fail();
-         } catch (Exception e) {
-             e.printStackTrace();
-             TestCase.fail();
-         }
-        
-         try {
-             /* case: simple */
-             verify(mock_context, times(1)).write(new LongWritable(54L),
-             new Candidate(new LongWritable(443L), clusterSize));
+      /* case: symmetric */
+      verify(mock_context, times(1)).write(new LongWritable(443L),
+          new Candidate(new LongWritable(54L), clusterSize));
 
-             verify(mock_context, times(1)).write(new LongWritable(5L),
-                     new Candidate(new LongWritable(54L), clusterSize));
-             
-             /* case: symmetric */
-             verify(mock_context, times(1)).write(new LongWritable(443L),
-                     new Candidate(new LongWritable(54L), clusterSize));
-             
-             /* case: self recommendaton */
-             verify(mock_context, times(0)).write(new LongWritable(443L),
-                     new Candidate(new LongWritable(443L), clusterSize));
-             
-             /* case: id not in the cluster */
-             verify(mock_context, times(0)).write(new LongWritable(98L),
-                     new Candidate(new LongWritable(443L), clusterSize));
-             
-         } catch (Exception e) {
-             TestCase.fail();
-         }         
-        
-    }
-    
+      /* case: self recommendaton */
+      verify(mock_context, times(0)).write(new LongWritable(443L),
+          new Candidate(new LongWritable(443L), clusterSize));
+
+      /* case: id not in the cluster */
+      verify(mock_context, times(0)).write(new LongWritable(98L),
+          new Candidate(new LongWritable(443L), clusterSize));
+
+    } catch (Exception e) {
+      TestCase.fail();
+    }         
+
+  }
+
 }

@@ -39,57 +39,56 @@ import static org.mockito.Mockito.*;
 
 public class TestSelectClustersMapper extends TestCase {
 
-    private static final long HASH_SEED = 1L;
+  private static final long HASH_SEED = 1L;
 
-    public TestSelectClustersMapper(String name) {
-        super(name);
+  public TestSelectClustersMapper(String name) {
+    super(name);
+  }
+
+  @SuppressWarnings("unchecked")
+  public void testMap() {
+
+    CalcHashValue calcHash = new CalcHashValue();
+
+    SelectClustersMapper mapper = new SelectClustersMapper();
+    Mapper<LongWritable, Text, SeedClusterId, RelatedUsersWritable>.Context mock_context
+    = mock(Mapper.Context.class);
+    mapper.setup(mock_context);
+
+    /**/ 
+    try {
+      Text value = new Text("327\t1 2 43 21");
+      mapper.map(null, value, mock_context);
+    } catch (IOException e) {
+      e.printStackTrace();
+      TestCase.fail();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      TestCase.fail();
+    } catch (Exception e) {
+      e.printStackTrace();
+      TestCase.fail();
     }
 
-    @SuppressWarnings("unchecked")
-    public void testMap() {
+    TreeMap<Long,Long> hashedFeatureVector 
+    = new TreeMap<Long,Long>();
+    int[] features = {1, 2, 43, 21}; 
 
-        CalcHashValue calcHash = new CalcHashValue();         
+    for (int i = 0; i<features.length; i++ ) {
+      hashedFeatureVector.put(calcHash.run(new Long(features[i]), this.HASH_SEED), 
+          new Long(1));
+    }         
 
-        SelectClustersMapper mapper = new SelectClustersMapper();        
-        Mapper<LongWritable, Text, SeedClusterId, RelatedUsersWritable>.Context mock_context
-            = mock(Mapper.Context.class);
-        mapper.setup(mock_context);
-        
-        /**/ 
-        try {
-            Text value = new Text("327\t1 2 43 21");
-            mapper.map(null, value, mock_context);
-        } catch (IOException e) {
-            e.printStackTrace();
-            TestCase.fail();
-         } catch (InterruptedException e) {
-             e.printStackTrace();
-             TestCase.fail();
-         } catch (Exception e) {
-             e.printStackTrace();
-             TestCase.fail();
-         }
-         
-         TreeMap<Long,Long> hashedFeatureVector 
-             = new TreeMap<Long,Long>();
-         int[] features = {1, 2, 43, 21}; 
-         
-         for (int i = 0; i<features.length; i++ ) {
-             hashedFeatureVector.put(calcHash.run(new Long(features[i]), this.HASH_SEED), 
-                         new Long(1));
-         }         
-         
-         try {
-             
-             verify(mock_context, times(1)).write(
-                     new SeedClusterId(this.HASH_SEED, hashedFeatureVector.firstKey()),                     
-                     new RelatedUsersWritable(new Long(327)));
-         } catch (Exception e) {
-             e.printStackTrace();
-             TestCase.fail();
-         }  
-        
-    }
+    try {
+
+      verify(mock_context, times(1)).write(
+          new SeedClusterId(this.HASH_SEED, hashedFeatureVector.firstKey()),
+          new RelatedUsersWritable(new Long(327)));
+    } catch (Exception e) {
+      e.printStackTrace();
+      TestCase.fail();
+    }  
+  }
 
 
 }

@@ -31,63 +31,63 @@ import junit.framework.TestCase;
 
 public class TestCalcHashValue extends TestCase {
 
-    public TestCalcHashValue(String name) {
-        super(name);
+  public TestCalcHashValue(String name) {
+    super(name);
+  }
+
+  protected void setUp() throws Exception {
+    super.setUp();
+  }
+
+  public void testRun() {
+    CalcHashValue calcHash = new CalcHashValue(); 
+
+    /* test collision */
+    Map<Long, Long>resultMap = new HashMap<Long, Long>();
+    for (int i = 0; i<100000; i++) {
+      Long hashedValue = calcHash.run((long) i, 3349L);
+      if (resultMap.containsKey(hashedValue)) {
+        fail("Collision keys!");
+        Long count = resultMap.get(hashedValue);
+        resultMap.put(hashedValue, count+1);
+      } else {
+        resultMap.put(hashedValue, 1L);
+      }
     }
 
-    protected void setUp() throws Exception {
-        super.setUp();
+    /* compare the rankings with different seeds */
+    Set<Long>resultMapA = this.extractTopRanked(233L, 10000, 10); 
+    Set<Long>resultMapB =  this.extractTopRanked(3L, 10000, 10);
+
+    int collistionCount = 0;
+    for (Long id : resultMapA) {
+      if (resultMapB.contains(id)) {
+        collistionCount += 1;
+      }
+    }
+    assertTrue(collistionCount < 1);
+  }
+
+
+  private Set<Long> extractTopRanked(long hashSeed, 
+      int size, int threshold) {
+    CalcHashValue calcHash = new CalcHashValue();
+    TreeMap<Long,Long> hashedValues = new TreeMap<Long,Long>();
+
+    for (int i=0; i<size; i++) {
+      hashedValues.put(
+          calcHash.run((long) i, hashSeed), 
+          (long) i);
     }
 
-    public void testRun() {
-        CalcHashValue calcHash = new CalcHashValue(); 
-        
-        /* test collision */
-        Map<Long, Long>resultMap = new HashMap<Long, Long>();
-        for (int i = 0; i<100000; i++) {
-            Long hashedValue = calcHash.run((long) i, 3349L);
-            if (resultMap.containsKey(hashedValue)) {
-                fail("Collision keys!");
-                Long count = resultMap.get(hashedValue);
-                resultMap.put(hashedValue, count+1);
-            } else {
-                resultMap.put(hashedValue, 1L);
-            }
-        }
-        
-        /* compare the rankings with different seeds */
-        Set<Long>resultMapA = this.extractTopRanked(233L, 10000, 10); 
-        Set<Long>resultMapB =  this.extractTopRanked(3L, 10000, 10);
-        
-        int collistionCount = 0;
-        for (Long id : resultMapA) {
-            if (resultMapB.contains(id)) {
-                collistionCount += 1;
-            }
-        }
-        assertTrue(collistionCount < 1);
+    Set<Long> rtSet = new HashSet<Long>();
+    for (int i=0; i<threshold; i++) {
+      Long hashedValue = hashedValues.lastKey();
+      Long id = hashedValues.get(hashedValue);
+      rtSet.add(id);
+      hashedValues.remove(hashedValue);
     }
+    return rtSet;
+  }
 
-    
-    private Set<Long> extractTopRanked(long hashSeed, 
-            int size, int threshold) {
-        CalcHashValue calcHash = new CalcHashValue();
-        TreeMap<Long,Long> hashedValues = new TreeMap<Long,Long>();
-
-        for (int i=0; i<size; i++) {
-            hashedValues.put(
-                    calcHash.run((long) i, hashSeed), 
-                    (long) i);
-        }
-        
-        Set<Long> rtSet = new HashSet<Long>();
-        for (int i=0; i<threshold; i++) {
-            Long hashedValue = hashedValues.lastKey();
-            Long id = hashedValues.get(hashedValue);
-            rtSet.add(id);
-            hashedValues.remove(hashedValue);
-        }
-        return rtSet;
-    }
-    
 }
